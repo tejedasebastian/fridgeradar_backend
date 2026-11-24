@@ -128,6 +128,7 @@ pytest -q
 
 - Lee `TEST_DATABASE_URL`; si no existe, usa `DATABASE_URL`.
 - Crea la base de tests si no existe (conectando a la base `postgres`).
+- Se niega a correr si el nombre de la base no contiene `test`, para no borrar una base de desarrollo o produccion por accidente.
 - Fuerza `RATE_LIMIT_ENABLED=false`, `ENABLE_SCHEDULER=false` y `GEMINI_API_KEY=""`.
 - Exige un `JWT_SECRET` valido (usa uno de test si el entorno no lo define).
 

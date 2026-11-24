@@ -59,6 +59,13 @@ _test_url = make_url(settings.database_url)
 TEST_DB_NAME = _test_url.database
 if not TEST_DB_NAME:
     raise RuntimeError("The test database URL must include a database name")
+# The fixture below drops and recreates every table. Refuse to do that on a
+# database whose name does not look like a test database.
+if "test" not in TEST_DB_NAME.lower():
+    raise RuntimeError(
+        f"Refusing to run destructive tests against database '{TEST_DB_NAME}': "
+        "the name must contain 'test'"
+    )
 # Connect to the maintenance database to create the test database if needed.
 ADMIN_URL = _test_url.set(database="postgres").render_as_string(hide_password=False)
 
