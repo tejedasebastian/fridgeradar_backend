@@ -1,8 +1,9 @@
--- Seed data for local development
+-- Seed data for local development (fictional demo data).
+-- Demo login: alice@example.com / demo1234
 -- Run after migrations: psql -d fridge_inventory -f db/seeds/001_sample_data.sql
 
 INSERT INTO users (id, email, password_hash, full_name) VALUES
-    ('a0000000-0000-0000-0000-000000000001', 'alice@example.com', '$2b$12$REPLACED_HASH', 'Alice Johnson');
+    ('a0000000-0000-0000-0000-000000000001', 'alice@example.com', '$2b$12$sZC/jHw4xbRjGyq3EFhsB.eSTOUim1QKxCwgiU8W1119FFjuvM.8q', 'Alice Johnson');
 
 INSERT INTO households (id, name, timezone, owner_user_id) VALUES
     ('b0000000-0000-0000-0000-000000000001', 'Casa de Alice', 'America/Mexico_City', 'a0000000-0000-0000-0000-000000000001');

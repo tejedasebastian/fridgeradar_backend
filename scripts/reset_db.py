@@ -15,8 +15,8 @@ Ademas cubre el resto de pantallas testeables del frontend:
   - Refrigerador + Freezer + Pantry por household (cubre los 4 zone_types).
   - Items con status active/consumed/discarded (cubre /inventory/[id]).
   - Items con opened_date (cubre flujos que lo consultan).
-  - Productos con image_url obtenido de Open Food Facts en paralelo
-    (cubre la card de inventario y el add-item-dialog).
+  - Productos con image_url NULL: el frontend renderiza iconos por
+    categoria (cubre la card de inventario y el add-item-dialog).
   - Shopping list con source (manual / from-recipe).
   - Activity log con las 6 acciones que pinta la UI: created, updated,
     consumed, discarded, restocked, deleted (+ shopping_item y refrigerator).
@@ -24,10 +24,10 @@ Ademas cubre el resto de pantallas testeables del frontend:
     las de caducidad (expired, expiring_today, expiring_soon) como las de
     low_stock (que el seed anterior no producia).
 
-Credenciales de los usuarios seed (password unica para todo el entorno dev):
+Credenciales de los usuarios demo (ficticios, password unica para dev):
     alice@example.com   / demo1234
     bob@example.com     / demo1234
-    demo@example.com  / demo1234
+    demo@example.com    / demo1234
 """
 
 import sys
@@ -40,6 +40,7 @@ import uuid
 
 from app.core.config import settings
 from app.core.database import Base, engine, SessionLocal
+from app.core.security import hash_password
 from app.models import (
     User, Household, HouseholdMember, Zone, Product, InventoryItem,
     Alert, ShoppingListItem, ActivityLog,
@@ -49,7 +50,8 @@ from app.models.refrigerator import Refrigerator
 
 LOW_STOCK_THRESHOLD = 1.0
 
-DEV_PASSWORD_HASH = "$2b$12$REPLACED_HASH"
+DEMO_PASSWORD = "demo1234"
+DEV_PASSWORD_HASH = hash_password(DEMO_PASSWORD)
 
 CATEGORIES = [
     "Lácteos", "Carne", "Aves", "Pescado", "Verduras", "Frutas",
@@ -566,10 +568,10 @@ def seed():
             print(f"  Pending invites: {pending_inv}")
             print(f"  Activity log:    {db_summary.query(ActivityLog).count()}")
             print()
-            print("  Dev credentials (password for all): demo1234")
+            print("  Demo credentials (ficticias, password for all): demo1234")
             print("    alice@example.com   / demo1234   (owner of Casa de Alice, admin of Casa Demo)")
             print("    bob@example.com     / demo1234   (admin in Casa de Alice, pending in Casa Demo)")
-            print("    demo@example.com  / demo1234   (member in Casa de Alice, owner of Casa Demo)")
+            print("    demo@example.com    / demo1234   (member in Casa de Alice, owner of Casa Demo)")
         finally:
             db_summary.close()
     finally:

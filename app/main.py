@@ -31,17 +31,14 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-origins = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost",
-    "http://127.0.0.1:3000",
-]
+origins = settings.cors_origin_list
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
+    # `allow_credentials=True` no es válido con el comodín `*`; si se
+    # configura explícitamente, se desactivan las credenciales.
+    allow_credentials="*" not in origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

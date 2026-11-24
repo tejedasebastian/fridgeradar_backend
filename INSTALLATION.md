@@ -32,7 +32,7 @@ El backend espera dos bases de datos en el servidor local de Postgres:
 - `fridge_inventory` — base principal de desarrollo
 - `fridge_inventory_test` — base efimera usada por pytest
 
-Por defecto el proyecto se conecta con usuario `postgres` y password `CHANGE_ME` (definido en `fridgeradar_backend/.env`). Si tu Postgres tiene otras credenciales, ajustalas en el `.env` despues.
+El proyecto **no trae credenciales por defecto**. Configura tu propia conexion en `fridgeradar_backend/.env` (copia de `.env.example`); sin `DATABASE_URL` y `JWT_SECRET` la API no arranca.
 
 ### Windows (PowerShell)
 
@@ -54,7 +54,7 @@ Edita el archivo `fridgeradar_backend/.env` (copia de `.env.example`):
 ```
 DATABASE_URL=postgresql+psycopg://TU_USUARIO:TU_PASSWORD@localhost:5432/fridge_inventory
 TEST_DATABASE_URL=postgresql+psycopg://TU_USUARIO:TU_PASSWORD@localhost:5432/fridge_inventory_test
-JWT_SECRET=CHANGE_ME_GENERATE_A_RANDOM_SECRET
+JWT_SECRET=<genera-un-valor-aleatorio-de-32+-caracteres>
 ENVIRONMENT=local
 GEMINI_API_KEY=
 RATE_LIMIT_ENABLED=true
@@ -110,8 +110,8 @@ Copy-Item .env.example .env
 
 Edita `fridgeradar_backend/.env` y rellena:
 
-- `DATABASE_URL` — apuntando a tu Postgres local y la BD `fridge_inventory`.
-- `JWT_SECRET` — cualquier string largo (en dev sirve el que viene).
+- `DATABASE_URL` - obligatoria, apuntando a tu Postgres local y la BD `fridge_inventory`.
+- `JWT_SECRET` - obligatorio, >= 32 caracteres y aleatorio. Genera uno con `python -c "import secrets; print(secrets.token_urlsafe(48))"`.
 - `GEMINI_API_KEY` — opcional, para el chat IA. Conseguila en [aistudio.google.com](https://aistudio.google.com/app/apikey).
 
 ### 2.3 Crear las tablas y datos de prueba
@@ -136,10 +136,10 @@ Salida esperada (fragmento):
   Inventory items: 20 active (...)
   Alerts:          ...
   Shopping items:  3
-  Dev credentials (password for all): demo1234
+  Demo credentials (ficticias, password for all): demo1234
     alice@example.com   / demo1234
     bob@example.com     / demo1234
-    demo@example.com  / demo1234
+    demo@example.com    / demo1234
 ```
 
 Alternativa con Alembic (solo crea el esquema, sin datos):
@@ -254,7 +254,7 @@ cd "C:\Users\sebas\Desktop\sebas\repos\UI UX\fridgeradar_backend"
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-Copy-Item .env.example .env       # edita DATABASE_URL y GEMINI_API_KEY si aplica
+Copy-Item .env.example .env       # edita DATABASE_URL y JWT_SECRET; GEMINI_API_KEY si aplica
 python scripts/reset_db.py
 
 # 3) Frontend (en otra terminal)

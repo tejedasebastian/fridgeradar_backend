@@ -6,8 +6,9 @@ The project targets PostgreSQL (UUIDs, JSONB, native ENUMs), so we cannot
 use SQLite. We create a dedicated test database `fridge_inventory_test`
 on the local Postgres, run all tests against it, and drop it at exit.
 
-If you want to override the connection string, set `TEST_DATABASE_URL`
-in the environment or in a `.env.test` file.
+The test database URL is read from `TEST_DATABASE_URL`; if it is not set,
+`DATABASE_URL` is used instead (this is what CI does). At least one of the
+two is required. The database itself is created if it does not exist.
 """
 from __future__ import annotations
 
@@ -18,15 +19,21 @@ from datetime import date, timedelta
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session, sessionmaker
 
 # Force the test database URL BEFORE importing the app, so every
 # `app.core.config.settings.database_url` reads this value.
-os.environ.setdefault(
-    "TEST_DATABASE_URL",
-    "postgresql+psycopg://postgres:CHANGE_ME@localhost:5432/fridge_inventory_test",
-)
-os.environ["DATABASE_URL"] = os.environ["TEST_DATABASE_URL"]
+TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL") or os.environ.get("DATABASE_URL")
+if not TEST_DATABASE_URL:
+    raise RuntimeError(
+        "Set DATABASE_URL or TEST_DATABASE_URL before running pytest. "
+        "Example: postgresql+psycopg://USER:PASSWORD@localhost:5432/fridge_inventory_test"
+    )
+os.environ["TEST_DATABASE_URL"] = TEST_DATABASE_URL
+os.environ["DATABASE_URL"] = TEST_DATABASE_URL
+# Tests need a valid JWT secret; this value is only for the test process.
+os.environ.setdefault("JWT_SECRET", "pytest-only-secret-please-do-not-reuse-0123456789")
 # Disable scheduler + rate limits during tests.
 os.environ.setdefault("ENABLE_SCHEDULER", "false")
 os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
@@ -48,8 +55,12 @@ from app.models import (  # noqa: E402
     Zone,
 )
 
-TEST_DB_NAME = "fridge_inventory_test"
-ADMIN_URL = settings.database_url.replace(f"/{TEST_DB_NAME}", "/postgres")
+_test_url = make_url(settings.database_url)
+TEST_DB_NAME = _test_url.database
+if not TEST_DB_NAME:
+    raise RuntimeError("The test database URL must include a database name")
+# Connect to the maintenance database to create the test database if needed.
+ADMIN_URL = _test_url.set(database="postgres").render_as_string(hide_password=False)
 
 
 def _ensure_test_database() -> None:
